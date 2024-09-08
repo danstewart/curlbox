@@ -3,7 +3,7 @@ package commands
 import (
 	"flag"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path"
 )
@@ -18,22 +18,34 @@ func Create(createCmd *flag.FlagSet) {
 	var curlboxDir = createCmd.Arg(0)
 
 	info, _ := os.Stat(curlboxDir)
-	if info.IsDir() {
-		log.Fatal("Directory '" + curlboxDir + "' already exists")
+	if info != nil && info.IsDir() {
+		slog.Error("Directory already exists", "Path", curlboxDir)
+		os.Exit(1)
 	}
 
 	if err := os.MkdirAll(curlboxDir, os.ModePerm); err != nil {
-		log.Fatal(err)
+		slog.Error("Error creating directory", "Path", curlboxDir, "Error", err)
+		os.Exit(1)
 	}
 
 	// Create .curlbox-root file to mark the root of the curlbox
-	file, err := os.Create(path.Join(curlboxDir + ".curlbox-root"))
+	curlboxRootFile := path.Join(curlboxDir, ".curlbox-root")
+	file, err := os.Create(curlboxRootFile)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("Error creating .curlbox-root file", "Path", curlboxRootFile, "Error", err)
+		os.Exit(1)
 	}
 	file.Close()
 
-	// TODO: Create .gitignore and ignore secrets.toml
+	// Create .gitignore and ignore secrets.toml
+	gitignoreFile := path.Join(curlboxDir, ".gitignore")
+	file, err = os.Create(gitignoreFile)
+	if err != nil {
+		slog.Error("Error creating .gitignore file", "Path", gitignoreFile, "Error", err)
+		os.Exit(1)
+	}
+	file.WriteString("secrets.toml\n")
+	file.Close()
 
 	fmt.Println("Created curlbox " + createCmd.Arg(0))
 }
