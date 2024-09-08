@@ -1,0 +1,9 @@
+[default]
+POKEDEX_ID = 1
+IGNORE = "Hello, World!"
+
+[dev]
+POKEDEX_ID = 2
+
+[prod]
+POKEDEX_ID = 3
