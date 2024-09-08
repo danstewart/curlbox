@@ -19,19 +19,58 @@ func Run(runCmd *flag.FlagSet) {
 		os.Exit(1)
 	}
 
-	var scriptPath = runCmd.Arg(0)
+	scriptPath := validateScriptPath(runCmd.Arg(0))
 
+	// Get the environment of variables to use
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "default"
+	}
+
+	// Pass any extra arguments to the script
+	extraArgs := make([]string, 0)
+	for idx, arg := range runCmd.Args() {
+		if idx == 0 {
+			continue
+		}
+		extraArgs = append(extraArgs, arg)
+	}
+
+	// Send script output right back out to the terminal
+	cmd := exec.Command(scriptPath, extraArgs...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// Load variables into command environment
+	loadVariablesIntoScriptEnv(scriptPath, env, cmd)
+
+	slog.Debug("Running script", "Script", scriptPath, "Env", env, "Args", extraArgs, "Variables", cmd.Env)
+	err := cmd.Run()
+	if err != nil {
+		slog.Error("Error running script", "Error", err.Error())
+		os.Exit(1)
+	}
+}
+
+// validateScriptPath ensures the script path is valid, prints an error and exits if it isn't
+func validateScriptPath(scriptPath string) string {
 	info, err := os.Stat(scriptPath)
 	if os.IsNotExist(err) {
 		slog.Error("Script file not found", "Path", scriptPath)
 		os.Exit(1)
 	}
+
 	if info.IsDir() {
 		slog.Error("Script path is a directory", "Path", scriptPath)
 		os.Exit(1)
 	}
 
-	var scriptDir = filepath.Dir(scriptPath)
+	return scriptPath
+}
+
+// loadVariablesIntoScriptEnv loads the variables from the variable files into the script environment
+func loadVariablesIntoScriptEnv(scriptFile string, env string, cmd *exec.Cmd) {
+	scriptDir := filepath.Dir(scriptFile)
 
 	varFiles, err := findVarFiles(scriptDir)
 	if err != nil {
@@ -39,17 +78,6 @@ func Run(runCmd *flag.FlagSet) {
 		os.Exit(1)
 	}
 
-	// Get the environment of variables to use
-	env := os.Getenv("ENV")
-	if env == "" {
-		env = "default"
-	}
-	slog.Debug("Running script", "Script", scriptPath, "Env", env)
-
-	cmd := exec.Command(scriptPath)
-
-	// Load variables into command environment
-	// TODO: Need to test resolution order of variables
 	for _, varFile := range varFiles {
 		slog.Debug("Parsing variables", "File", varFile)
 
@@ -60,30 +88,21 @@ func Run(runCmd *flag.FlagSet) {
 			os.Exit(1)
 		}
 
-		// Error if the environment doesn't exist
-		if _, ok := vars[env]; !ok {
-			slog.Warn("Environment not found", "ENV", env, "FILE", varFile)
+		// Prefer the specific environment but fallback to default
+		if data, ok := vars[env]; ok {
+			for k, v := range data {
+				cmd.Env = append(cmd.Env, k+"="+fmt.Sprintf("%v", v))
+			}
+		} else if data, ok := vars["default"]; ok {
+			slog.Warn("Environment not found, using 'default' instead", "Env", env, "File", varFile)
+			for k, v := range data {
+				cmd.Env = append(cmd.Env, k+"="+fmt.Sprintf("%v", v))
+			}
 		}
-
-		for k, v := range vars[env] {
-			cmd.Env = append(cmd.Env, k+"="+fmt.Sprintf("%v", v))
-		}
-
-		slog.Debug("Loaded variables", "Data", cmd.Env)
 	}
-
-	out, err := cmd.Output()
-	if err != nil {
-		slog.Error("Error running script", "Error", err.Error())
-		os.Exit(1)
-	}
-	fmt.Println(string(out))
-
-	// TODO:
-	// Load all vars
-	// Run script
 }
 
+// findVarFiles finds all the variable files in the directory tree
 func findVarFiles(dir string) ([]string, error) {
 	var files []string
 	var foundRoot = false

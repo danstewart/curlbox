@@ -17,17 +17,7 @@ func main() {
 	runCmd := flag.NewFlagSet("run", flag.ExitOnError)
 	runCmd.Usage = commands.Help
 
-	logLevel := slog.LevelInfo
-	if os.Getenv("DEBUG") == "1" {
-		logLevel = slog.LevelDebug
-	}
-
-	slog.SetDefault(slog.New(
-		tint.NewHandler(os.Stderr, &tint.Options{
-			Level:      logLevel,
-			TimeFormat: time.DateTime,
-		}),
-	))
+	configureLogging()
 
 	if len(os.Args) < 2 {
 		commands.Help()
@@ -43,4 +33,18 @@ func main() {
 		commands.Help()
 		os.Exit(1)
 	}
+}
+
+func configureLogging() {
+	logLevel := slog.LevelInfo
+	if os.Getenv("DEBUG") == "1" {
+		logLevel = slog.LevelDebug
+	}
+
+	slog.SetDefault(slog.New(
+		tint.NewHandler(os.Stderr, &tint.Options{
+			Level:      logLevel,
+			TimeFormat: time.DateTime,
+		}),
+	))
 }

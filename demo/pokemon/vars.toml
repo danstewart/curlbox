@@ -1,0 +1,8 @@
+[default]
+POKEDEX_ID = 1
+
+[dev]
+POKEDEX_ID = 4
+
+[prod]
+POKEDEX_ID = 7

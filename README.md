@@ -75,3 +75,8 @@ Then run with:
 ENV=dev curlbox run path/to/script
 ```
 
+## Recommended Tools
+
+- [curl](https://curl.se/) - A command line tool for making HTTP requests
+- [jq](https://stedolan.github.io/jq/) - A command line tool for parsing JSON
+- [jless](https://jless.io/) - A command line tool for viewing JSON
