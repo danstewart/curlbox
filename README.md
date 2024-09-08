@@ -30,10 +30,11 @@ You should make a new curlbox for each isolate project but separate APIs in the 
 curlbox create ~/curlboxes/demo
 
 # Now create a new script inside your new curlbox:
-echo "curl $URL" > ~/curlboxes/demo/example.sh
+echo -e '#!/usr/bin/env bash\ncurl $URL' > ~/curlboxes/demo/example.sh
+chmod +x ~/curlboxes/demo/example.sh
 
 # Now create a vars file:
-echo -e "[default]\nURL=http://example.com" > ~/curlboxes/demo/vars.toml
+echo -e '[default]\nURL = "http://example.com"' > ~/curlboxes/demo/vars.toml
 
 # Now run your new script:
 curlbox run ~/curlboxes/demo/example.sh
