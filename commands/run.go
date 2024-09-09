@@ -97,6 +97,9 @@ func loadVariablesIntoScriptEnv(scriptFile string, env string, cmd *exec.Cmd) {
 		}
 
 		// Prefer the specific environment but fallback to default
+		// TODO:
+		// - Should we handle top level values?
+		// - Should we support nested keys? eg. SomeCustomer.Prod
 		if data, ok := vars[env]; ok {
 			for k, v := range data {
 				cmd.Env = append(cmd.Env, k+"="+fmt.Sprintf("%v", v))
