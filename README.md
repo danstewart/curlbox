@@ -30,11 +30,17 @@ You should make a new curlbox for each isolate project but separate APIs in the 
 curlbox create ~/curlboxes/demo
 
 # Now create a new script inside your new curlbox:
-echo -e '#!/usr/bin/env bash\ncurl $URL' > ~/curlboxes/demo/example.sh
+cat > ~/curlboxes/demo/example.sh << EOF
+#!/usr/bin/env bash
+curl $URL
+EOF
 chmod +x ~/curlboxes/demo/example.sh
 
 # Now create a vars file:
-echo -e '[default]\nURL = "http://example.com"' > ~/curlboxes/demo/vars.toml
+cat > ~/curlboxes/demo/vars.toml << EOF
+[default]
+URL = "http://example.com"
+EOF
 
 # Now run your new script:
 curlbox run ~/curlboxes/demo/example.sh
@@ -81,3 +87,19 @@ ENV=dev curlbox run path/to/script
 - [curl](https://curl.se/) - A command line tool for making HTTP requests
 - [jq](https://stedolan.github.io/jq/) - A command line tool for parsing JSON
 - [jless](https://jless.io/) - A command line tool for viewing JSON
+
+## Tips
+
+#### Submitting JSON via curl
+
+```shell
+curl \
+    --header "Content-Type: application/json" \
+    --request POST \
+    --url ${URL} \
+    --data-binary @- << EOF
+    {
+        "name": "$name"
+    }
+EOF
+```
