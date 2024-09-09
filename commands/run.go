@@ -44,6 +44,14 @@ func Run(runCmd *flag.FlagSet) {
 	// Load variables into command environment
 	loadVariablesIntoScriptEnv(scriptPath, env, cmd)
 
+	// Passthrough PATH environment variable
+	// so any scripts can use the same PATH as the parent process
+	cmd.Env = append(cmd.Env, "PATH="+os.Getenv("PATH"))
+
+	// Run the script in the script directory
+	// This makes it easier to chain scripts together by using the relative path
+	cmd.Dir = filepath.Dir(scriptPath)
+
 	slog.Debug("Running script", "Script", scriptPath, "Env", env, "Args", extraArgs, "Variables", cmd.Env)
 	err := cmd.Run()
 	if err != nil {
