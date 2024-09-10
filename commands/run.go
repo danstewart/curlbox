@@ -159,5 +159,10 @@ func findVarFiles(dir string) ([]string, error) {
 		}
 	}
 
+	// Reverse the order of the files so that the most specific files are loaded first
+	for i, j := 0, len(files)-1; i < j; i, j = i+1, j-1 {
+		files[i], files[j] = files[j], files[i]
+	}
+
 	return files, nil
 }
