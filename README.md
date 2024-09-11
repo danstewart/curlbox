@@ -6,7 +6,7 @@ See the [tutorial](#tutorial) for a walkthrough of how to use `curlbox`.
 
 ## Install
 
-Grab `curlbox` from the releases and put it in your `PATH`.
+Grab `curlbox` from the [releases](https://github.com/danstewart/curlbox/releases) and put it in your `PATH`.
 <!-- TODO: Add instructions with `go install` -->
 
 ## Usage Reference
@@ -146,4 +146,14 @@ curl https://example.com
 ```shell
 # script2.sh
 ./script1.sh
+```
+
+## Release Process
+
+Steps to release a new version, build curlbox for all platforms and upload to GitHub releases.
+
+```shell
+git tag -a v0.0.1 -m "Initial release"
+git push origin v0.0.1
+GITHUB_TOKEN=... goreleaser release --clean
 ```
