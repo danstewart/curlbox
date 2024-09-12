@@ -6,8 +6,16 @@ See the [tutorial](#tutorial) for a walkthrough of how to use `curlbox`.
 
 ## Install
 
-Grab `curlbox` from the [releases](https://github.com/danstewart/curlbox/releases) and put it in your `PATH`.
-<!-- TODO: Add instructions with `go install` -->
+Using `go install`:
+```shell
+# Install
+go install github.com/danstewart/curlbox@latest
+
+# Uninstall
+rm -f ${GOPATH:-~/go}/bin/curlbox
+```
+
+Or you can grab `curlbox` from the [releases](https://github.com/danstewart/curlbox/releases) and put it in your `PATH`.
 
 ## Usage Reference
 
