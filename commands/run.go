@@ -87,6 +87,7 @@ func loadVariablesIntoScriptEnv(scriptFile string, env string, cmd *exec.Cmd) {
 		os.Exit(1)
 	}
 
+	envVars := make(map[string]string)
 	for _, varFile := range varFiles {
 		slog.Debug("Parsing variables", "File", varFile)
 
@@ -98,19 +99,20 @@ func loadVariablesIntoScriptEnv(scriptFile string, env string, cmd *exec.Cmd) {
 		}
 
 		// Prefer the specific environment but fallback to default
-		// TODO:
-		// - Should we handle top level values?
-		// - Should we support nested keys? eg. SomeCustomer.Prod
 		if data, ok := vars[env]; ok {
 			for k, v := range data {
-				cmd.Env = append(cmd.Env, k+"="+fmt.Sprintf("%v", v))
+				envVars[k] = fmt.Sprintf("%v", v)
 			}
 		} else if data, ok := vars["default"]; ok {
 			slog.Warn("Environment not found, using 'default' instead", "Env", env, "File", varFile)
 			for k, v := range data {
-				cmd.Env = append(cmd.Env, k+"="+fmt.Sprintf("%v", v))
+				envVars[k] = fmt.Sprintf("%v", v)
 			}
 		}
+	}
+
+	for k, v := range envVars {
+		cmd.Env = append(cmd.Env, k+"="+v)
 	}
 }
 
