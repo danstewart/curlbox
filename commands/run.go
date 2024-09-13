@@ -21,6 +21,11 @@ func Run(runCmd *flag.FlagSet) {
 
 	scriptPath := validateScriptPath(runCmd.Arg(0))
 
+	if !filepath.IsAbs(scriptPath) {
+		cwd, _ := os.Getwd()
+		scriptPath = filepath.Join(cwd, scriptPath)
+	}
+
 	// Get the environment of variables to use
 	env := os.Getenv("ENV")
 	if env == "" {
