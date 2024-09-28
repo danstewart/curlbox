@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/BurntSushi/toml"
 )
@@ -59,11 +60,7 @@ func Run(runCmd *flag.FlagSet) {
 	// so any scripts can use the same PATH as the parent process
 	cmd.Env = append(cmd.Env, "PATH="+os.Getenv("PATH"))
 
-	err := cmd.Run()
-	if err != nil {
-		slog.Error("Error running script", "Error", err.Error())
-		os.Exit(1)
-	}
+	runScript(cmd)
 }
 
 // validateScriptPath ensures the script path is valid, prints an error and exits if it isn't
@@ -172,4 +169,39 @@ func findVarFiles(dir string) ([]string, error) {
 	}
 
 	return files, nil
+}
+
+// runScript runs the script
+// If the script is not executable, it will prompt the user to make it executable and rerun
+func runScript(cmd *exec.Cmd) {
+	err := cmd.Run()
+
+	if err != nil {
+		// If permission denied error then prompt user to autofix
+		if errors.Is(err, os.ErrPermission) {
+			fmt.Println("Script is not executable, do you want to make executable and rerun? (y/N)")
+
+			var response string
+			_, err := fmt.Scanln(&response)
+			if err != nil {
+				os.Exit(1)
+			}
+
+			if strings.ToLower(response) == "y" {
+				// Change the file mode to executable
+				scriptPath := cmd.Args[0]
+				if err := os.Chmod(scriptPath, 0755); err != nil {
+					slog.Error("Error changing file mode", "Error", err.Error())
+					os.Exit(1)
+				}
+
+				// Run the script again
+				runScript(cmd)
+				return
+			}
+		}
+
+		slog.Error("Error running script", "Error", err.Error())
+		os.Exit(1)
+	}
 }
