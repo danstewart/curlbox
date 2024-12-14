@@ -156,6 +156,28 @@ curl https://example.com
 ./script1.sh
 ```
 
+#### Sharing headers and other Curl settings
+
+Curl can be configured via a [config file](https://everything.curl.dev/cmdline/configfile.html).  
+Using this along with [envsubst](https://www.gnu.org/software/gettext/manual/html_node/envsubst-Invocation.html) makes it easy to re-use headers (and other settings) across scripts.  
+
+```shell
+# == curl.config == #
+# Common settings
+-v
+--silent
+
+# Shared headers
+--header "Content-Type: application/json"
+--header "Authorization: Bearer ${TOKEN}"
+```
+
+```shell
+curl -X POST \
+    --config <(envsubst < curl.config) \
+    --url ${URL}
+```
+
 ## Release Process
 
 Steps to release a new version, build curlbox for all platforms and upload to GitHub releases.
